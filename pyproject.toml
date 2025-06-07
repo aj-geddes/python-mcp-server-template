@@ -4,7 +4,6 @@ target-version = ['py310', 'py311', 'py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
-  # directories
   \.eggs
   | \.git
   | \.hg
@@ -43,7 +42,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --strict-config"
+addopts = "-ra -q --strict-markers --strict-config --cov=mcp_server --cov=examples --cov-report=term-missing --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov-fail-under=80"
 testpaths = [
     "tests",
     ".",
@@ -60,14 +59,20 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["."]
+source = [".", "mcp_server", "examples"]
 omit = [
     "*/tests/*",
     "*/test_*",
     "setup.py",
     "*/venv/*",
     "*/.venv/*",
+    "*/htmlcov/*",
+    "*/.git/*",
+    "*/__pycache__/*",
+    "build.py",
+    "conftest.py"
 ]
+branch = true
 
 [tool.coverage.report]
 exclude_lines = [
@@ -78,14 +83,25 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
     "if 0:",
-    "if __name__ == .__main__.:",
+    "if __name__ == '__main__':",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
+    "pass",
+    "\\.\\.\\."
 ]
+show_missing = true
+skip_covered = false
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
 
 [tool.bandit]
 exclude_dirs = ["tests", "test_*.py"]
-skips = ["B101"]  # Skip assert_used test
+skips = ["B101"]
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
