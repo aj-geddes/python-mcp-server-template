@@ -1,0 +1,52 @@
+# Example configuration for MCP Server
+# Copy this file to config.yaml and customize as needed
+
+server:
+  name: "template-server"
+  version: "1.0.0"
+  debug: false
+  
+workspace:
+  base_path: "/workspace"
+  max_file_size: 1048576  # 1MB in bytes
+  allowed_extensions:
+    - ".txt"
+    - ".md"
+    - ".py"
+    - ".json"
+    - ".yaml"
+    - ".yml"
+
+security:
+  command_timeout: 30  # seconds
+  max_command_length: 1000
+  allowed_commands:
+    - "ls"
+    - "cat"
+    - "head"
+    - "tail"
+    - "grep"
+    - "find"
+
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "/tmp/mcp-logs/server.log"
+  max_size: 10485760  # 10MB
+  backup_count: 5
+
+tools:
+  echo:
+    enabled: true
+  list_files:
+    enabled: true
+    show_hidden: false
+  read_file:
+    enabled: true
+    max_size: 1048576  # 1MB
+  write_file:
+    enabled: true
+    create_dirs: true
+  run_shell_command:
+    enabled: true
+    timeout: 30
