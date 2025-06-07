@@ -371,4 +371,19 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        import asyncio
+
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            loop.create_task(main())
+        else:
+            asyncio.run(main())
+
+    except KeyboardInterrupt:
+        logger.info("Server interrupted, shutting down...")
+    except Exception as e:
+        logger.error(f"Fatal error: {e}", exc_info=True)
+        sys.exit(1)

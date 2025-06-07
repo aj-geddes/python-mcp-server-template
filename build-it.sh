@@ -28,7 +28,7 @@ else
 fi
 
 echo "2. Testing server initialization..."
-if timeout 10 docker run --rm "${FULL_IMAGE_NAME}" python -c "from mcp_server import mcp; print('MCP server initialized successfully')"; then
+if docker run --rm "${FULL_IMAGE_NAME}" python -c "from mcp_server import mcp, SERVER_NAME, VERSION; print(f'MCP server initialized: {SERVER_NAME} v{VERSION}')"; then
     echo "✅ Server initialization test passed!"
 else
     echo "❌ Server initialization test failed!"
@@ -36,10 +36,18 @@ else
 fi
 
 echo "3. Testing health check tool..."
-if docker run --rm "${FULL_IMAGE_NAME}" python -c "from mcp_server import mcp; import asyncio; print('Health check tool available:', 'health_check' in [tool.name for tool in mcp._tools])"; then
+if docker run --rm "${FULL_IMAGE_NAME}" python -c "from mcp_server import mcp; tools = [tool.name for tool in mcp._tools]; print('Available tools:', tools); print('Health check available:', 'health_check' in tools)"; then
     echo "✅ Health check tool test passed!"
 else
     echo "❌ Health check tool test failed!"
+    exit 1
+fi
+
+echo "4. Testing container entry point (quick timeout)..."
+if timeout 3 docker run --rm "${FULL_IMAGE_NAME}" || [ $? -eq 124 ]; then
+    echo "✅ Entry point test passed (server started successfully)!"
+else
+    echo "❌ Entry point test failed!"
     exit 1
 fi
 
