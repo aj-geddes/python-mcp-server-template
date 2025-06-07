@@ -44,6 +44,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
+    name: lint (Python ${{ matrix.python-version }})
 
     steps:
       - name: Checkout code
@@ -68,109 +69,23 @@ jobs:
           pip install -r requirements.txt
           pip install flake8 black isort mypy bandit safety
 
-      - name: Run Black (formatter)
-        id: black
-        continue-on-error: true
-        run: |
-          echo "## Black Code Formatting" >> $GITHUB_STEP_SUMMARY
-          if ! black --check --diff .; then
-            echo "black_failed=true" >> $GITHUB_OUTPUT
-            echo "::warning file=./::Black formatting issues. Run 'black .'." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "black_failed=false" >> $GITHUB_OUTPUT
-          fi
+      - name: Run Black
+        run: black --check --diff .
 
-      - name: Run isort (import sort)
-        id: isort
-        continue-on-error: true
-        run: |
-          echo "## isort" >> $GITHUB_STEP_SUMMARY
-          if ! isort --check-only --diff .; then
-            echo "isort_failed=true" >> $GITHUB_OUTPUT
-            echo "::warning::isort sorting issues. Run 'isort .'." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "isort_failed=false" >> $GITHUB_OUTPUT
-          fi
+      - name: Run isort
+        run: isort --check-only --diff .
 
       - name: Run Flake8
-        id: flake8
-        continue-on-error: true
-        run: |
-          echo "## Flake8" >> $GITHUB_STEP_SUMMARY
-          if ! flake8 --max-line-length=88 --extend-ignore=E203,W503 .; then
-            echo "flake8_failed=true" >> $GITHUB_OUTPUT
-            echo "::warning::Flake8 style issues found." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "flake8_failed=false" >> $GITHUB_OUTPUT
-          fi
+        run: flake8 --max-line-length=88 --extend-ignore=E203,W503 .
 
       - name: Run MyPy
-        id: mypy
-        continue-on-error: true
-        run: |
-          echo "## MyPy" >> $GITHUB_STEP_SUMMARY
-          if ! mypy --ignore-missing-imports .; then
-            echo "mypy_failed=true" >> $GITHUB_OUTPUT
-            echo "::warning::MyPy type checking issues." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "mypy_failed=false" >> $GITHUB_OUTPUT
-          fi
+        run: mypy --ignore-missing-imports .
 
       - name: Run Bandit
-        id: bandit
-        run: |
-          echo "## Bandit" >> $GITHUB_STEP_SUMMARY
-          if ! bandit -r . -f json -o bandit-report.json; then
-            echo "bandit_failed=true" >> $GITHUB_OUTPUT
-          else
-            echo "bandit_failed=false" >> $GITHUB_OUTPUT
-          fi
+        run: bandit -r . -f json -o bandit-report.json
 
       - name: Run Safety
-        id: safety
-        run: |
-          echo "## Safety" >> $GITHUB_STEP_SUMMARY
-          if ! safety check --bare; then
-            echo "safety_failed=true" >> $GITHUB_OUTPUT
-          else
-            echo "safety_failed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create Issue on Failure
-        if: >
-          github.ref == 'refs/heads/master' &&
-          (
-            steps.black.outputs.black_failed == 'true' ||
-            steps.isort.outputs.isort_failed == 'true' ||
-            steps.flake8.outputs.flake8_failed == 'true' ||
-            steps.mypy.outputs.mypy_failed == 'true' ||
-            steps.bandit.outputs.bandit_failed == 'true' ||
-            steps.safety.outputs.safety_failed == 'true'
-          )
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const failStates = {
-              black: '${{ steps.black.outputs.black_failed }}',
-              isort: '${{ steps.isort.outputs.isort_failed }}',
-              flake8: '${{ steps.flake8.outputs.flake8_failed }}',
-              mypy: '${{ steps.mypy.outputs.mypy_failed }}',
-              bandit: '${{ steps.bandit.outputs.bandit_failed }}',
-              safety: '${{ steps.safety.outputs.safety_failed }}'
-            };
-
-            let body = `## Code Quality Checks Failed on ${context.sha.substring(0,7)}\n\n`;
-            Object.entries(failStates).forEach(([tool, failed]) => {
-              body += `- **${tool}**: ${failed === 'true' ? '❌' : '✅'}\n`;
-            });
-
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Code Quality Issues • ${context.sha.substring(0,7)}`,
-              body,
-              labels: ['automation', 'code-quality']
-            });
+        run: safety check --bare
 
   test:
     needs: lint
@@ -185,28 +100,28 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ github.event.inputs.python_version }}
+          python-version: ${{ github.event.inputs.python_version || '3.12' }}
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Run tests
+      - name: Run tests with coverage
         id: pytest
         run: |
           echo "## Tests" >> $GITHUB_STEP_SUMMARY
-          pytest tests/ --cov=mcp_server --cov-report=term --cov-report=xml --cov-fail-under=${{ github.event.inputs.coverage_threshold }}
+          pytest tests/ --cov=mcp_server --cov-report=term --cov-report=xml --cov-fail-under=${{ github.event.inputs.coverage_threshold || '80' }}
 
-      - name: Upload coverage
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           file: coverage.xml
-          flags: tests
+          flags: unittests
           fail_ci_if_error: false
 
-      - name: Upload artifacts
+      - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
@@ -215,7 +130,119 @@ jobs:
             htmlcov/
           retention-days: 30
 
-      - name: Docker build (optional)
+      - name: Docker Build Test (optional)
         if: ${{ github.event.inputs.skip_docker == 'false' }}
-        run: |
-          docker build -t test-mcp-server .
+        run: docker build -t test-mcp-server .
+
+  report:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize matrix results and report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const matrixVersions = ['3.10', '3.11', '3.12'];
+            const conclusions = {
+              success: '✅',
+              failure: '❌',
+              cancelled: '🚫',
+              skipped: '⏭️',
+              timed_out: '⌛',
+              neutral: 'ℹ️'
+            };
+
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+
+            const results = matrixVersions.map(version => {
+              const job = jobs.data.jobs.find(j => j.name.includes(`lint (Python ${version}`));
+              return {
+                version,
+                conclusion: job?.conclusion || 'unknown',
+                url: job?.html_url || ''
+              };
+            });
+
+            let summary = `<!-- quality-report -->\n## 🧪 Python Code Quality Matrix Report\n\n`;
+            summary += `| Python Version | Status |\n`;
+            summary += `|----------------|--------|\n`;
+
+            for (const r of results) {
+              const icon = conclusions[r.conclusion] || '❓';
+              summary += `| \`${r.version}\` | ${icon} ${r.url ? `[Logs](${r.url})` : ''} |\n`;
+            }
+
+            const anyFailures = results.some(r => r.conclusion !== 'success');
+            summary += anyFailures
+              ? `\n**Some checks failed. Please review the logs above.**\n`
+              : `\n✅ All checks passed across all Python versions.\n`;
+
+            const isDispatch = context.eventName === 'workflow_dispatch';
+
+            if (isDispatch) {
+              const existing = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: 'automation,code-quality'
+              });
+
+              for (const issue of existing.data) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: `Closing previous report for new workflow run at \`${context.sha.substring(0, 7)}\`.`
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed'
+                });
+              }
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Code Quality Matrix Report • ${context.sha.substring(0, 7)}`,
+                body: summary,
+                labels: ['automation', 'code-quality']
+              });
+
+            } else if (context.payload.pull_request?.number) {
+              const prNumber = context.payload.pull_request.number;
+
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber
+              });
+
+              const existing = comments.data.find(c =>
+                c.body.includes('<!-- quality-report -->') &&
+                c.user.type === 'Bot'
+              );
+
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body: summary
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: summary
+                });
+              }
+            } else {
+              console.log('Not a PR or workflow_dispatch. Skipping output.');
+            }
