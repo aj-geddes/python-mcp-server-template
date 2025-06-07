@@ -12,7 +12,7 @@ from pathlib import Path
 # Add the parent directory to the path so we can import the server
 sys.path.insert(0, str(Path(__file__).parent))
 
-from mcp_server import echo, list_files, read_file, write_file, MCPError
+from mcp_server import MCPError, echo, list_files, read_file, write_file
 
 
 async def test_echo():

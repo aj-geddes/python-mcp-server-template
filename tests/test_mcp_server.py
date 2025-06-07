@@ -7,28 +7,28 @@ Tests for high coverage and functionality validation.
 import asyncio
 import json
 import os
+
+# Import our server modules
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import pytest
 
-# Import our server modules
-import sys
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from mcp_server import (
     MCPError,
+    code_review_prompt,
     echo,
     list_files,
     read_file,
-    write_file,
+    read_file_resource,
+    run_command,
     run_shell_command,
     validate_path,
-    run_command,
-    code_review_prompt,
-    read_file_resource,
+    write_file,
 )
 
 
@@ -284,7 +284,9 @@ class TestWriteFile:
                 test_file = Path(temp_dir) / "subdir" / "test.txt"
                 mock_validate.return_value = test_file
 
-                result = await write_file("subdir/test.txt", test_content, create_dirs=True)
+                result = await write_file(
+                    "subdir/test.txt", test_content, create_dirs=True
+                )
 
                 assert "✅" in result["status"]
                 assert test_file.exists()
