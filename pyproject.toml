@@ -45,7 +45,6 @@ minversion = "7.0"
 addopts = "-ra -q --strict-markers --strict-config --cov=mcp_server --cov=examples --cov-report=term-missing --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov-fail-under=80"
 testpaths = [
     "tests",
-    ".",
 ]
 filterwarnings = [
     "error",
@@ -59,7 +58,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = [".", "mcp_server", "examples"]
+source = ["mcp_server", "examples"]
 omit = [
     "*/tests/*",
     "*/test_*",
