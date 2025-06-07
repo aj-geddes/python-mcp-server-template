@@ -4,6 +4,7 @@ Example: How to extend the MCP server template with custom tools.
 
 This file demonstrates common patterns for adding new tools to your MCP server.
 Copy the patterns you need into your main mcp_server.py file.
+
 """
 
 import asyncio
