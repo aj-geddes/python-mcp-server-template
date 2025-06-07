@@ -22,24 +22,26 @@ RUN useradd -m -s /bin/bash mcpuser && \
 USER mcpuser
 WORKDIR /workspace
 
-# Copy requirements first for better caching
+# Copy requirements file
 COPY --chown=mcpuser:mcpuser requirements.txt .
 
-# Install Python dependencies using UV
-RUN uv pip install --system -r requirements.txt
+# Create a local virtual environment and install Python dependencies using UV
+RUN uv venv .venv && \
+    uv pip install -r requirements.txt
 
 # Copy the rest of the application
 COPY --chown=mcpuser:mcpuser . .
 
 # Make the main script executable
-RUN chmod +x mcp_server.py
+# Old way we converted to a more modular way
+#RUN chmod +x mcp_server.py
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys; sys.exit(0)" || exit 1
+    CMD .venv/bin/python -c "import sys; sys.exit(0)" || exit 1
 
 # Expose the default MCP port (if needed for future transport methods)
 EXPOSE 8080
 
-# Default command
-CMD ["python", "mcp_server.py"]
+# Default command using venv Python
+CMD [".venv/bin/python", "mcp_server.py"]
