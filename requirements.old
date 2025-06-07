@@ -1,5 +1,5 @@
 # Production dependencies
-fastmcp>=2.0.0
+fastmcp>=0.10.0
 
 # Development dependencies (install with: pip install -r requirements-dev.txt)
 # Or uncomment below for all-in-one installation

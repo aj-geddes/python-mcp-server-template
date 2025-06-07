@@ -1,0 +1,3 @@
+# Alternative requirements.txt for official MCP SDK
+# Use this if you prefer the official MCP SDK
+mcp[cli]>=1.9.0

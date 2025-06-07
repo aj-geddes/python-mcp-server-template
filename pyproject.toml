@@ -129,7 +129,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "fastmcp>=0.1.0",
+    "fastmcp>=2.0.0",
 ]
 
 [project.optional-dependencies]

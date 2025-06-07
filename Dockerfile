@@ -4,7 +4,7 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PATH="/home/mcpuser/.local/bin:$PATH"
+ENV PATH="/workspace/.venv/bin:$PATH"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -44,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE 8080
 
 # Default command using venv Python
-CMD [".venv/bin/python", "mcp_server.py"]
+CMD ["python", "mcp_server.py"]

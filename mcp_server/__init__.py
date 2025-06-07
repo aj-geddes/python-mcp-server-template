@@ -19,7 +19,7 @@ SERVER_NAME = "template-server"
 VERSION = "2.0.0"
 
 # Initialize FastMCP server
-mcp = FastMCP(SERVER_NAME, version=VERSION)
+mcp = FastMCP(name=SERVER_NAME)
 
 
 class MCPError(Exception):
