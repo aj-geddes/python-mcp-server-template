@@ -1,9 +1,13 @@
 # Use the official UV Python image with Python 3.12
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-# Set environment variables
+# Set production-grade environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH=/workspace
+ENV MCP_SERVER_NAME="template-server"
+ENV MCP_TRANSPORT="stdio"
+ENV MCP_PORT=8080
 ENV PATH="/workspace/.venv/bin:$PATH"
 
 # Install system dependencies
@@ -36,12 +40,12 @@ COPY --chown=mcpuser:mcpuser . .
 # Old way we converted to a more modular way
 #RUN chmod +x mcp_server.py
 
-# Health check
+# Health check with FastMCP import validation
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD .venv/bin/python -c "import sys; sys.exit(0)" || exit 1
+    CMD python -c "from fastmcp import FastMCP; import sys; sys.exit(0)" || exit 1
 
-# Expose the default MCP port (if needed for future transport methods)
+# Expose the MCP port for HTTP/SSE transport
 EXPOSE 8080
 
-# Default command using venv Python
-CMD ["python", "mcp_server.py"]
+# Use exec form entry point for proper signal handling
+ENTRYPOINT ["python", "-u", "mcp_server.py"]

@@ -1,5 +1,7 @@
-# Production dependencies
-fastmcp>=2.0.0
+# Production dependencies - semantic versioning for stability
+fastmcp>=2.0.0,<3.0.0
+python-dotenv>=1.1.0,<2.0.0
+rich>=13.9.0,<14.0.0
 
 # Development dependencies (install with: pip install -r requirements-dev.txt)
 # Or uncomment below for all-in-one installation

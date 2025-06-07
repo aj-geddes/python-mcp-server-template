@@ -82,8 +82,12 @@ poetry.lock
 *.key
 *.pem
 .env.local
-.env.production
+.env.production.local
+.env.development.local
 secrets/
+
+# Keep example configs but ignore local overrides
+# .env.production and .env.development are kept as examples
 
 # Temporary files
 *.tmp

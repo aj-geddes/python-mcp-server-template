@@ -2,24 +2,56 @@
 """
 FastMCP Server Template
 A template for creating MCP servers using the FastMCP framework.
+Production-ready with environment configuration and structured logging.
 """
 
 import asyncio
 import json
+import logging
 import os
+import signal
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastmcp import FastMCP
+from rich.console import Console
+from rich.logging import RichHandler
 
-# Server configuration
-SERVER_NAME = "template-server"
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv is optional
+
+# Production logging setup
+console = Console()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[RichHandler(console=console, rich_tracebacks=True)]
+)
+logger = logging.getLogger(__name__)
+
+# Environment-first configuration
+SERVER_NAME = os.getenv("MCP_SERVER_NAME", "template-server")
 VERSION = "2.0.0"
+TRANSPORT = os.getenv("MCP_TRANSPORT", "stdio")
+HOST = os.getenv("MCP_HOST", "0.0.0.0")
+PORT = int(os.getenv("MCP_PORT", "8080"))
+WORKSPACE_PATH = os.getenv("WORKSPACE_PATH", "/workspace")
 
 # Initialize FastMCP server
 mcp = FastMCP(name=SERVER_NAME)
+
+# Graceful shutdown handling
+def signal_handler(signum, frame):
+    logger.info(f"Received signal {signum}, shutting down gracefully...")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 
 class MCPError(Exception):
@@ -28,8 +60,10 @@ class MCPError(Exception):
     pass
 
 
-def validate_path(path: str, base_path: str = "/workspace") -> Path:
+def validate_path(path: str, base_path: str = None) -> Path:
     """Validate and resolve a path relative to the base path."""
+    if base_path is None:
+        base_path = WORKSPACE_PATH
     try:
         resolved = Path(base_path) / path
         resolved = resolved.resolve()
@@ -72,6 +106,24 @@ async def run_command(
         )
     except Exception as e:
         raise MCPError(f"Command execution failed: {str(e)}")
+
+
+@mcp.tool()
+async def health_check() -> Dict[str, Any]:
+    """
+    Health check endpoint for container orchestration.
+    
+    Returns:
+        Dictionary with server health status
+    """
+    return {
+        "status": "healthy",
+        "server_name": SERVER_NAME,
+        "version": VERSION,
+        "transport": TRANSPORT,
+        "workspace": WORKSPACE_PATH,
+        "timestamp": str(asyncio.get_event_loop().time()),
+    }
 
 
 @mcp.tool()
@@ -299,13 +351,22 @@ Be specific and constructive in your feedback."""
 
 async def main():
     """Main entry point for the MCP server."""
+    logger.info(f"Starting {SERVER_NAME} v{VERSION}")
+    logger.info(f"Transport: {TRANSPORT}, Host: {HOST}, Port: {PORT}")
+    logger.info(f"Workspace: {WORKSPACE_PATH}")
+    
     try:
-        # Run the FastMCP server
-        await mcp.run()
+        # Configure transport based on environment
+        if TRANSPORT.lower() == "http" or TRANSPORT.lower() == "sse":
+            logger.info(f"Starting server on {HOST}:{PORT} with {TRANSPORT} transport")
+            await mcp.run(transport=TRANSPORT.lower(), host=HOST, port=PORT)
+        else:
+            logger.info("Starting server with STDIO transport")
+            await mcp.run()
     except KeyboardInterrupt:
-        print("\nServer shutting down...")
+        logger.info("Server shutting down...")
     except Exception as e:
-        print(f"Server error: {e}", file=sys.stderr)
+        logger.error(f"Server error: {e}", exc_info=True)
         sys.exit(1)
 
 
