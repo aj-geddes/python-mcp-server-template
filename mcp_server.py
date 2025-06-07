@@ -16,7 +16,7 @@ from fastmcp import FastMCP
 
 # Server configuration
 SERVER_NAME = "template-server"
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 
 # Initialize FastMCP server
 mcp = FastMCP(SERVER_NAME, version=VERSION)
