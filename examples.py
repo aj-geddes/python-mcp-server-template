@@ -22,6 +22,7 @@ mcp = FastMCP("example-extensions", version="1.0.0")
 
 class MCPError(Exception):
     """Custom exception for MCP-related errors."""
+
     pass
 
 
@@ -30,7 +31,7 @@ class MCPError(Exception):
 async def get_system_info() -> Dict[str, Any]:
     """
     Get basic system information.
-    
+
     Returns:
         Dictionary with system information
     """
@@ -44,7 +45,7 @@ async def get_system_info() -> Dict[str, Any]:
             "processor": platform.processor(),
             "hostname": platform.node(),
             "current_time": datetime.now().isoformat(),
-            "status": "✅ Success"
+            "status": "✅ Success",
         }
     except Exception as e:
         raise MCPError(f"Failed to get system info: {str(e)}")

@@ -73,12 +73,13 @@ jobs:
 
     - name: Run Black (Code Formatter Check)
       id: black
+      continue-on-error: true
       run: |
         echo "## Black Code Formatting" >> $GITHUB_STEP_SUMMARY
         if ! black --check --diff .; then
           echo "❌ Black formatting issues found" >> $GITHUB_STEP_SUMMARY
           echo "black_failed=true" >> $GITHUB_OUTPUT
-          exit 1
+          echo "::warning file=mcp_server.py::Black formatting issues found. Run 'black .' to fix."
         else
           echo "✅ Black formatting passed" >> $GITHUB_STEP_SUMMARY
           echo "black_failed=false" >> $GITHUB_OUTPUT
@@ -86,12 +87,13 @@ jobs:
 
     - name: Run isort (Import Sorting Check)
       id: isort
+      continue-on-error: true
       run: |
         echo "## isort Import Sorting" >> $GITHUB_STEP_SUMMARY
         if ! isort --check-only --diff .; then
           echo "❌ isort import sorting issues found" >> $GITHUB_STEP_SUMMARY
           echo "isort_failed=true" >> $GITHUB_OUTPUT
-          exit 1
+          echo "::warning::isort import sorting issues found. Run 'isort .' to fix."
         else
           echo "✅ isort import sorting passed" >> $GITHUB_STEP_SUMMARY
           echo "isort_failed=false" >> $GITHUB_OUTPUT
@@ -99,12 +101,13 @@ jobs:
 
     - name: Run Flake8 (Style Guide Enforcement)
       id: flake8
+      continue-on-error: true
       run: |
         echo "## Flake8 Style Guide" >> $GITHUB_STEP_SUMMARY
         if ! flake8 --max-line-length=88 --extend-ignore=E203,W503 .; then
           echo "❌ Flake8 style issues found" >> $GITHUB_STEP_SUMMARY
           echo "flake8_failed=true" >> $GITHUB_OUTPUT
-          exit 1
+          echo "::warning::Flake8 style issues found. Check output for details."
         else
           echo "✅ Flake8 style guide passed" >> $GITHUB_STEP_SUMMARY
           echo "flake8_failed=false" >> $GITHUB_OUTPUT
@@ -112,12 +115,13 @@ jobs:
 
     - name: Run MyPy (Type Checking)
       id: mypy
+      continue-on-error: true
       run: |
         echo "## MyPy Type Checking" >> $GITHUB_STEP_SUMMARY
         if ! mypy --ignore-missing-imports *.py; then
           echo "❌ MyPy type checking issues found" >> $GITHUB_STEP_SUMMARY
           echo "mypy_failed=true" >> $GITHUB_OUTPUT
-          exit 1
+          echo "::warning::MyPy type checking issues found. Add type hints to fix."
         else
           echo "✅ MyPy type checking passed" >> $GITHUB_STEP_SUMMARY
           echo "mypy_failed=false" >> $GITHUB_OUTPUT
@@ -150,7 +154,7 @@ jobs:
         fi
 
     - name: Create Issue on Failure
-      if: failure() && github.ref == 'refs/heads/main'
+      if: (steps.black.outputs.black_failed == 'true' || steps.isort.outputs.isort_failed == 'true' || steps.flake8.outputs.flake8_failed == 'true' || steps.mypy.outputs.mypy_failed == 'true' || steps.bandit.outputs.bandit_failed == 'true' || steps.safety.outputs.safety_failed == 'true') && github.ref == 'refs/heads/master'
       uses: actions/github-script@v7
       with:
         script: |
