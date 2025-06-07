@@ -4,27 +4,24 @@ on:
   push:
     branches: [ master, develop ]
     paths:
-      - '**.py'
+      - '**/*.py'
   pull_request:
-    branches: [ main ]
+    branches: [ master, develop ]
     paths:
-      - '**.py'
+      - '**/*.py'
   workflow_dispatch:
     inputs:
       run_tests:
         description: 'Run full test suite'
         required: false
-        default: true
+        default: 'true'
         type: boolean
       python_version:
         description: 'Python version for testing'
         required: false
         default: '3.12'
         type: choice
-        options:
-          - '3.10'
-          - '3.11'
-          - '3.12'
+        options: ['3.10', '3.11', '3.12']
       coverage_threshold:
         description: 'Coverage threshold percentage'
         required: false
@@ -33,7 +30,7 @@ on:
       skip_docker:
         description: 'Skip Docker build test'
         required: false
-        default: false
+        default: 'false'
         type: boolean
 
 permissions:
@@ -46,234 +43,179 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install flake8 black isort mypy bandit safety
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 black isort mypy bandit safety
 
-    - name: Run Black (Code Formatter Check)
-      id: black
-      continue-on-error: true
-      run: |
-        echo "## Black Code Formatting" >> $GITHUB_STEP_SUMMARY
-        if ! black --check --diff .; then
-          echo "❌ Black formatting issues found" >> $GITHUB_STEP_SUMMARY
-          echo "black_failed=true" >> $GITHUB_OUTPUT
-          echo "::warning file=mcp_server.py::Black formatting issues found. Run 'black .' to fix."
-        else
-          echo "✅ Black formatting passed" >> $GITHUB_STEP_SUMMARY
-          echo "black_failed=false" >> $GITHUB_OUTPUT
-        fi
+      - name: Run Black (formatter)
+        id: black
+        continue-on-error: true
+        run: |
+          echo "## Black Code Formatting" >> $GITHUB_STEP_SUMMARY
+          if ! black --check --diff .; then
+            echo "black_failed=true" >> $GITHUB_OUTPUT
+            echo "::warning file=./::Black formatting issues. Run 'black .'." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "black_failed=false" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Run isort (Import Sorting Check)
-      id: isort
-      continue-on-error: true
-      run: |
-        echo "## isort Import Sorting" >> $GITHUB_STEP_SUMMARY
-        if ! isort --check-only --diff .; then
-          echo "❌ isort import sorting issues found" >> $GITHUB_STEP_SUMMARY
-          echo "isort_failed=true" >> $GITHUB_OUTPUT
-          echo "::warning::isort import sorting issues found. Run 'isort .' to fix."
-        else
-          echo "✅ isort import sorting passed" >> $GITHUB_STEP_SUMMARY
-          echo "isort_failed=false" >> $GITHUB_OUTPUT
-        fi
+      - name: Run isort (import sort)
+        id: isort
+        continue-on-error: true
+        run: |
+          echo "## isort" >> $GITHUB_STEP_SUMMARY
+          if ! isort --check-only --diff .; then
+            echo "isort_failed=true" >> $GITHUB_OUTPUT
+            echo "::warning::isort sorting issues. Run 'isort .'." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "isort_failed=false" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Run Flake8 (Style Guide Enforcement)
-      id: flake8
-      continue-on-error: true
-      run: |
-        echo "## Flake8 Style Guide" >> $GITHUB_STEP_SUMMARY
-        if ! flake8 --max-line-length=88 --extend-ignore=E203,W503 .; then
-          echo "❌ Flake8 style issues found" >> $GITHUB_STEP_SUMMARY
-          echo "flake8_failed=true" >> $GITHUB_OUTPUT
-          echo "::warning::Flake8 style issues found. Check output for details."
-        else
-          echo "✅ Flake8 style guide passed" >> $GITHUB_STEP_SUMMARY
-          echo "flake8_failed=false" >> $GITHUB_OUTPUT
-        fi
+      - name: Run Flake8
+        id: flake8
+        continue-on-error: true
+        run: |
+          echo "## Flake8" >> $GITHUB_STEP_SUMMARY
+          if ! flake8 --max-line-length=88 --extend-ignore=E203,W503 .; then
+            echo "flake8_failed=true" >> $GITHUB_OUTPUT
+            echo "::warning::Flake8 style issues found." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "flake8_failed=false" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Run MyPy (Type Checking)
-      id: mypy
-      continue-on-error: true
-      run: |
-        echo "## MyPy Type Checking" >> $GITHUB_STEP_SUMMARY
-        if ! mypy --ignore-missing-imports *.py; then
-          echo "❌ MyPy type checking issues found" >> $GITHUB_STEP_SUMMARY
-          echo "mypy_failed=true" >> $GITHUB_OUTPUT
-          echo "::warning::MyPy type checking issues found. Add type hints to fix."
-        else
-          echo "✅ MyPy type checking passed" >> $GITHUB_STEP_SUMMARY
-          echo "mypy_failed=false" >> $GITHUB_OUTPUT
-        fi
+      - name: Run MyPy
+        id: mypy
+        continue-on-error: true
+        run: |
+          echo "## MyPy" >> $GITHUB_STEP_SUMMARY
+          if ! mypy --ignore-missing-imports .; then
+            echo "mypy_failed=true" >> $GITHUB_OUTPUT
+            echo "::warning::MyPy type checking issues." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "mypy_failed=false" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Run Bandit (Security Linting)
-      id: bandit
-      run: |
-        echo "## Bandit Security Analysis" >> $GITHUB_STEP_SUMMARY
-        if ! bandit -r . -f json -o bandit-report.json; then
-          echo "❌ Bandit security issues found" >> $GITHUB_STEP_SUMMARY
-          echo "bandit_failed=true" >> $GITHUB_OUTPUT
-          # Don't fail the job for security issues, but report them
-        else
-          echo "✅ Bandit security analysis passed" >> $GITHUB_STEP_SUMMARY
-          echo "bandit_failed=false" >> $GITHUB_OUTPUT
-        fi
+      - name: Run Bandit
+        id: bandit
+        run: |
+          echo "## Bandit" >> $GITHUB_STEP_SUMMARY
+          if ! bandit -r . -f json -o bandit-report.json; then
+            echo "bandit_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "bandit_failed=false" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Run Safety (Dependency Vulnerability Check)
-      id: safety
-      run: |
-        echo "## Safety Dependency Check" >> $GITHUB_STEP_SUMMARY
-        if ! safety check --json --output safety-report.json; then
-          echo "❌ Safety dependency vulnerabilities found" >> $GITHUB_STEP_SUMMARY
-          echo "safety_failed=true" >> $GITHUB_OUTPUT
-          # Don't fail the job for dependency issues, but report them
-        else
-          echo "✅ Safety dependency check passed" >> $GITHUB_STEP_SUMMARY
-          echo "safety_failed=false" >> $GITHUB_OUTPUT
-        fi
+      - name: Run Safety
+        id: safety
+        run: |
+          echo "## Safety" >> $GITHUB_STEP_SUMMARY
+          if ! safety check --bare; then
+            echo "safety_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "safety_failed=false" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Create Issue on Failure
-      if: (steps.black.outputs.black_failed == 'true' || steps.isort.outputs.isort_failed == 'true' || steps.flake8.outputs.flake8_failed == 'true' || steps.mypy.outputs.mypy_failed == 'true' || steps.bandit.outputs.bandit_failed == 'true' || steps.safety.outputs.safety_failed == 'true') && github.ref == 'refs/heads/master'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          
-          // Collect all the failure information
-          let issueBody = `# 🚨 Python Code Quality Issues Detected\n\n`;
-          issueBody += `**Commit:** ${context.sha.substring(0, 7)}\n`;
-          issueBody += `**Branch:** ${context.ref}\n`;
-          issueBody += `**Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})\n`;
-          issueBody += `**Triggered by:** @${context.actor}\n\n`;
-          
-          issueBody += `## Issues Found\n\n`;
-          
-          // Check which tools failed and add details
-          const steps = context.payload.workflow_run?.conclusion || 'failure';
-          
-          issueBody += `### 🔍 Failed Checks\n\n`;
-          issueBody += `- **Black Code Formatting:** ${'${{ steps.black.outputs.black_failed }}' === 'true' ? '❌ Failed' : '✅ Passed'}\n`;
-          issueBody += `- **isort Import Sorting:** ${'${{ steps.isort.outputs.isort_failed }}' === 'true' ? '❌ Failed' : '✅ Passed'}\n`;
-          issueBody += `- **Flake8 Style Guide:** ${'${{ steps.flake8.outputs.flake8_failed }}' === 'true' ? '❌ Failed' : '✅ Passed'}\n`;
-          issueBody += `- **MyPy Type Checking:** ${'${{ steps.mypy.outputs.mypy_failed }}' === 'true' ? '❌ Failed' : '✅ Passed'}\n`;
-          issueBody += `- **Bandit Security:** ${'${{ steps.bandit.outputs.bandit_failed }}' === 'true' ? '⚠️ Issues Found' : '✅ Passed'}\n`;
-          issueBody += `- **Safety Dependencies:** ${'${{ steps.safety.outputs.safety_failed }}' === 'true' ? '⚠️ Vulnerabilities Found' : '✅ Passed'}\n\n`;
-          
-          issueBody += `## 🛠️ How to Fix\n\n`;
-          issueBody += `### Automatic Fixes\n`;
-          issueBody += `\`\`\`bash\n`;
-          issueBody += `# Format code with Black\n`;
-          issueBody += `black .\n\n`;
-          issueBody += `# Sort imports with isort\n`;
-          issueBody += `isort .\n\n`;
-          issueBody += `# Check remaining issues\n`;
-          issueBody += `flake8 --max-line-length=88 --extend-ignore=E203,W503 .\n`;
-          issueBody += `mypy --ignore-missing-imports *.py\n`;
-          issueBody += `\`\`\`\n\n`;
-          
-          issueBody += `### Manual Review Required\n`;
-          issueBody += `- Review Bandit security warnings carefully\n`;
-          issueBody += `- Update vulnerable dependencies found by Safety\n`;
-          issueBody += `- Fix any remaining Flake8 or MyPy issues\n\n`;
-          
-          issueBody += `## 📋 Checklist\n\n`;
-          issueBody += `- [ ] Run automatic formatters (Black, isort)\n`;
-          issueBody += `- [ ] Fix Flake8 style issues\n`;
-          issueBody += `- [ ] Resolve MyPy type hints\n`;
-          issueBody += `- [ ] Address Bandit security warnings\n`;
-          issueBody += `- [ ] Update vulnerable dependencies\n`;
-          issueBody += `- [ ] Re-run tests locally\n`;
-          issueBody += `- [ ] Commit and push fixes\n\n`;
-          
-          issueBody += `*This issue was automatically created by the Python Code Quality workflow.*`;
-          
-          // Create the issue
-          const issue = await github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: `🚨 Code Quality Issues - ${context.sha.substring(0, 7)}`,
-            body: issueBody,
-            labels: ['bug', 'code-quality', 'automated']
-          });
-          
-          console.log(`Created issue #${issue.data.number}`);
+      - name: Create Issue on Failure
+        if: >
+          github.ref == 'refs/heads/master' &&
+          (
+            steps.black.outputs.black_failed == 'true' ||
+            steps.isort.outputs.isort_failed == 'true' ||
+            steps.flake8.outputs.flake8_failed == 'true' ||
+            steps.mypy.outputs.mypy_failed == 'true' ||
+            steps.bandit.outputs.bandit_failed == 'true' ||
+            steps.safety.outputs.safety_failed == 'true'
+          )
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const failStates = {
+              black: '${{ steps.black.outputs.black_failed }}',
+              isort: '${{ steps.isort.outputs.isort_failed }}',
+              flake8: '${{ steps.flake8.outputs.flake8_failed }}',
+              mypy: '${{ steps.mypy.outputs.mypy_failed }}',
+              bandit: '${{ steps.bandit.outputs.bandit_failed }}',
+              safety: '${{ steps.safety.outputs.safety_failed }}'
+            };
+
+            let body = `## Code Quality Checks Failed on ${context.sha.substring(0,7)}\n\n`;
+            Object.entries(failStates).forEach(([tool, failed]) => {
+              body += `- **${tool}**: ${failed === 'true' ? '❌' : '✅'}\n`;
+            });
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Code Quality Issues • ${context.sha.substring(0,7)}`,
+              body,
+              labels: ['automation', 'code-quality']
+            });
 
   test:
-    runs-on: ubuntu-latest
     needs: lint
-    if: success() && (github.event.inputs.run_tests != 'false')
-    
+    runs-on: ubuntu-latest
+    if: >
+      ${{ needs.lint.result == 'success' }} &&
+      ${{ github.event.inputs.run_tests == 'true' }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ github.event.inputs.python_version || '3.12' }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ github.event.inputs.python_version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
-    - name: Run tests with coverage
-      run: |
-        echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-        COVERAGE_THRESHOLD=${{ github.event.inputs.coverage_threshold || '80' }}
-        if pytest tests/ --cov=mcp_server --cov-report=term --cov-report=xml --cov-fail-under=$COVERAGE_THRESHOLD -v; then
-          echo "✅ All tests passed with sufficient coverage (>=$COVERAGE_THRESHOLD%)" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ Tests failed or insufficient coverage (<$COVERAGE_THRESHOLD%)" >> $GITHUB_STEP_SUMMARY
-          exit 1
-        fi
+      - name: Run tests
+        id: pytest
+        run: |
+          echo "## Tests" >> $GITHUB_STEP_SUMMARY
+          pytest tests/ --cov=mcp_server --cov-report=term --cov-report=xml --cov-fail-under=${{ github.event.inputs.coverage_threshold }}
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+          flags: tests
+          fail_ci_if_error: false
 
-    - name: Upload coverage reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-reports
-        path: |
-          coverage.xml
-          htmlcov/
-        retention-days: 30
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 30
 
-    - name: Test Docker build
-      if: github.event.inputs.skip_docker != 'true'
-      run: |
-        echo "## Docker Build Test" >> $GITHUB_STEP_SUMMARY
-        if docker build -t test-mcp-server .; then
-          echo "✅ Docker build successful" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ Docker build failed" >> $GITHUB_STEP_SUMMARY
-          exit 1
-        fi
+      - name: Docker build (optional)
+        if: ${{ github.event.inputs.skip_docker == 'false' }}
+        run: |
+          docker build -t test-mcp-server .
