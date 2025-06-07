@@ -1,14 +1,21 @@
 # Python MCP Server Template
 
 ![Python](https://img.shields.io/badge/python-v3.10+-blue.svg)
+
 ![FastMCP](https://img.shields.io/badge/FastMCP-v0.1.0+-green.svg)
+
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 ![Docker](https://img.shields.io/badge/docker-enabled-blue.svg)
+
 ![GitHub Actions](https://github.com/aj-geddes/python-mcp-server-template/workflows/Python%20Code%20Quality%20Check/badge.svg)
+
 ![Coverage](https://img.shields.io/badge/coverage-80%25+-brightgreen.svg)
-![Security](https://img.shields.io/badge/security-bandit%20%7C%20safety-red.svg)
+
 ![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
+
 ![Tests](https://img.shields.io/badge/tests-pytest-blue.svg)
+
 
 > 🚀 **Production-ready Python MCP server template using FastMCP framework**
 
