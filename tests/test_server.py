@@ -18,34 +18,34 @@ from mcp_server import echo, list_files, read_file, write_file, MCPError
 async def test_echo():
     """Test the echo tool."""
     print("🧪 Testing echo tool...")
-    
+
     test_message = "Hello, MCP Server!"
     result = await echo(test_message)
-    
+
     expected = f"Echo: {test_message}"
     assert result == expected, f"Expected '{expected}', got '{result}'"
-    
+
     print("✅ Echo test passed!")
 
 
 async def test_file_operations():
     """Test file read/write operations."""
     print("🧪 Testing file operations...")
-    
+
     # Test write
     test_content = "This is a test file.\nLine 2\nLine 3"
     test_file = "test_output.txt"
-    
+
     write_result = await write_file(test_file, test_content)
     assert write_result["status"] == "✅ Success"
     print("✅ File write test passed!")
-    
+
     # Test read
     read_result = await read_file(test_file)
     assert read_result["content"] == test_content
     assert read_result["status"] == "✅ Success"
     print("✅ File read test passed!")
-    
+
     # Test list files (should include our test file)
     list_result = await list_files(".")
     file_names = [f["name"] for f in list_result["files"]]
@@ -56,7 +56,7 @@ async def test_file_operations():
 async def test_error_handling():
     """Test error handling."""
     print("🧪 Testing error handling...")
-    
+
     # Test reading non-existent file
     try:
         await read_file("non_existent_file.txt")
@@ -69,7 +69,7 @@ async def test_error_handling():
 async def test_path_validation():
     """Test path validation security."""
     print("🧪 Testing path validation...")
-    
+
     # Test directory traversal attempt
     try:
         await read_file("../../../etc/passwd")
@@ -82,17 +82,17 @@ async def test_path_validation():
 async def run_all_tests():
     """Run all tests."""
     print("🚀 Starting MCP Server Template Tests\n")
-    
+
     tests = [
         test_echo,
         test_file_operations,
         test_error_handling,
         test_path_validation,
     ]
-    
+
     passed = 0
     failed = 0
-    
+
     for test in tests:
         try:
             await test()
@@ -101,12 +101,14 @@ async def run_all_tests():
             print(f"❌ Test {test.__name__} failed: {e}")
             failed += 1
         print()
-    
+
     print(f"📊 Test Results:")
     print(f"   ✅ Passed: {passed}")
     print(f"   ❌ Failed: {failed}")
-    print(f"   📈 Success Rate: {passed}/{passed+failed} ({passed/(passed+failed)*100:.1f}%)")
-    
+    print(
+        f"   📈 Success Rate: {passed}/{passed+failed} ({passed/(passed+failed)*100:.1f}%)"
+    )
+
     if failed > 0:
         print("\n🔍 Some tests failed. Check the output above for details.")
         sys.exit(1)
@@ -117,6 +119,7 @@ async def run_all_tests():
 if __name__ == "__main__":
     # Change to the workspace directory for testing
     import os
+
     os.chdir("/workspace" if Path("/workspace").exists() else ".")
-    
+
     asyncio.run(run_all_tests())
