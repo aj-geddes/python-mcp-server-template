@@ -1,0 +1,23 @@
+# Development dependencies for Python MCP Server Template
+# Install with: pip install -r requirements-dev.txt
+
+# Code formatting and style
+black>=23.0.0
+isort>=5.12.0
+
+# Linting and static analysis
+flake8>=6.0.0
+mypy>=1.0.0
+
+# Security analysis
+bandit>=1.7.0
+safety>=2.0.0
+
+# Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
+
+# Additional development tools
+pre-commit>=3.0.0  # Git hooks for code quality
+coverage>=7.0.0    # Code coverage reporting

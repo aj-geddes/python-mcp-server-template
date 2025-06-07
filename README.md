@@ -178,6 +178,42 @@ docker build \
 
 ## 🧪 Testing
 
+### Automated Testing (GitHub Actions)
+
+Every commit triggers automated testing:
+- **Code Quality**: Black, isort, Flake8, MyPy
+- **Security**: Bandit security analysis, Safety dependency checks
+- **Testing**: Python 3.10, 3.11, 3.12 compatibility
+- **Docker**: Container build verification
+- **Auto-Issue Creation**: Failed checks automatically create GitHub issues
+
+### Local Development Setup
+
+1. **Install development dependencies:**
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+2. **Set up pre-commit hooks:**
+   ```bash
+   pre-commit install
+   ```
+
+3. **Run quality checks locally:**
+   ```bash
+   # Format code
+   black .
+   isort .
+   
+   # Check code quality
+   flake8 .
+   mypy *.py
+   
+   # Security scan
+   bandit -r .
+   safety check
+   ```
+
 ### Manual Testing
 
 1. **Test with echo tool:**
@@ -189,7 +225,12 @@ docker build \
    # (Tool-specific testing depends on your MCP client)
    ```
 
-2. **Docker testing:**
+2. **Run included tests:**
+   ```bash
+   python test_server.py
+   ```
+
+3. **Docker testing:**
    ```bash
    # Build and test automatically
    ./build.sh
@@ -255,11 +296,52 @@ async def tool_name(param: str) -> Dict[str, Any]:
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+### Quick Start for Contributors
+
+1. **Fork and clone:**
+   ```bash
+   git clone https://github.com/your-username/python-mcp-server-template.git
+   cd python-mcp-server-template
+   ```
+
+2. **Set up development environment:**
+   ```bash
+   pip install -r requirements-dev.txt
+   pre-commit install
+   ```
+
+3. **Create feature branch:**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+
+4. **Make changes and test:**
+   ```bash
+   # Your changes here
+   black .
+   flake8 .
+   python test_server.py
+   ```
+
+5. **Commit and push:**
+   ```bash
+   git commit -m 'Add amazing feature'
+   git push origin feature/amazing-feature
+   ```
+
+6. **Open a Pull Request** using our [PR template](.github/pull_request_template.md)
+
+### Code Quality Requirements
+
+- ✅ **Black** formatting
+- ✅ **isort** import sorting
+- ✅ **Flake8** style compliance
+- ✅ **MyPy** type checking
+- ✅ **Bandit** security scanning
+- ✅ All tests passing
+- ✅ Documentation updated
 
 ## 📄 License
 
@@ -288,6 +370,26 @@ This project is licensed under the MIT License - see the LICENSE file for detail
    - Ensure file paths are relative to the working directory
    - Check that files exist before accessing them
 
+5. **Code quality checks failing:**
+   ```bash
+   # Auto-fix formatting issues
+   black .
+   isort .
+   
+   # Check remaining issues
+   flake8 .
+   mypy *.py
+   ```
+
+6. **Pre-commit hooks failing:**
+   ```bash
+   # Update hooks
+   pre-commit autoupdate
+   
+   # Run hooks manually
+   pre-commit run --all-files
+   ```
+
 ### Debug Mode
 
 Add debug logging to your tools:
@@ -300,6 +402,14 @@ logging.basicConfig(level=logging.DEBUG)
 async def debug_tool():
     logging.debug("Debug information here")
 ```
+
+### GitHub Actions Issues
+
+If automated checks fail:
+1. Check the **Actions** tab for detailed logs
+2. Review automatically created issues for fix instructions
+3. Run the same checks locally before pushing
+4. See [SECURITY.md](SECURITY.md) for security-related issues
 
 ## 🔗 Links
 
