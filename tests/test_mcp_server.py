@@ -20,15 +20,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from mcp_server import (
     MCPError,
-    code_review_prompt,
-    echo,
-    list_files,
-    read_file,
-    read_file_resource,
     run_command,
-    run_shell_command,
     validate_path,
-    write_file,
+    mcp,
 )
 
 
@@ -110,7 +104,7 @@ class TestRunCommand:
     async def test_run_command_timeout(self):
         """Test command timeout handling."""
         with patch("subprocess.run") as mock_run:
-            mock_run.side_effect = asyncio.TimeoutError()
+            mock_run.side_effect = subprocess.TimeoutExpired(["sleep", "100"], 1)
 
             with pytest.raises(MCPError, match="Command timed out"):
                 await run_command(["sleep", "100"], timeout=1)
@@ -131,20 +125,40 @@ class TestEcho:
     @pytest.mark.asyncio
     async def test_echo_basic(self):
         """Test basic echo functionality."""
-        result = await echo("Hello, World!")
+        # Access the actual function from the tool
+        echo_tool = None
+        for tool_name, tool in mcp._function_tools.items():
+            if tool_name == "echo":
+                echo_tool = tool
+                break
+        
+        assert echo_tool is not None, "Echo tool not found"
+        result = await echo_tool.fn("Hello, World!")
         assert result == "Echo: Hello, World!"
 
     @pytest.mark.asyncio
     async def test_echo_empty_string(self):
         """Test echo with empty string."""
-        result = await echo("")
+        echo_tool = None
+        for tool_name, tool in mcp._function_tools.items():
+            if tool_name == "echo":
+                echo_tool = tool
+                break
+        
+        result = await echo_tool.fn("")
         assert result == "Echo: "
 
     @pytest.mark.asyncio
     async def test_echo_special_characters(self):
         """Test echo with special characters."""
         test_string = "Test with 🚀 emoji and 特殊文字"
-        result = await echo(test_string)
+        echo_tool = None
+        for tool_name, tool in mcp._function_tools.items():
+            if tool_name == "echo":
+                echo_tool = tool
+                break
+        
+        result = await echo_tool.fn(test_string)
         assert result == f"Echo: {test_string}"
 
 

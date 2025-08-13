@@ -24,6 +24,7 @@ mcp = FastMCP(SERVER_NAME, version=VERSION)
 
 class MCPError(Exception):
     """Custom exception for MCP-related errors."""
+
     pass
 
 

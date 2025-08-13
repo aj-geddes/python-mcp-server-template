@@ -4,7 +4,6 @@ A template for creating MCP servers using the FastMCP framework.
 Production-ready with environment configuration and structured logging.
 """
 
-import json
 import logging
 import os
 import signal
@@ -19,6 +18,7 @@ from rich.logging import RichHandler
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass  # dotenv is optional
@@ -28,7 +28,7 @@ console = Console()
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[RichHandler(console=console, rich_tracebacks=True)]
+    handlers=[RichHandler(console=console, rich_tracebacks=True)],
 )
 logger = logging.getLogger(__name__)
 
@@ -43,18 +43,22 @@ WORKSPACE_PATH = os.getenv("WORKSPACE_PATH", "/workspace")
 # Initialize FastMCP server
 mcp = FastMCP(name=SERVER_NAME)
 
+
 # Graceful shutdown handling
-def signal_handler(signum, frame):
+def signal_handler(signum: int, frame: Any) -> None:
     logger.info(f"Received signal {signum}, shutting down gracefully...")
     sys.exit(0)
+
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
+
 class MCPError(Exception):
     pass
 
-def validate_path(path: str, base_path: str = None) -> Path:
+
+def validate_path(path: str, base_path: Optional[str] = None) -> Path:
     base_path = base_path or WORKSPACE_PATH
     try:
         resolved = Path(base_path) / path
@@ -65,7 +69,10 @@ def validate_path(path: str, base_path: str = None) -> Path:
     except Exception as e:
         raise MCPError(f"Invalid path {path}: {str(e)}")
 
-async def run_command(command: List[str], cwd: Optional[str] = None, timeout: int = 30) -> Dict[str, Any]:
+
+async def run_command(
+    command: List[str], cwd: Optional[str] = None, timeout: int = 30
+) -> Dict[str, Any]:
     try:
         result = subprocess.run(
             command,
@@ -85,12 +92,14 @@ async def run_command(command: List[str], cwd: Optional[str] = None, timeout: in
             "status": "✅ Success" if result.returncode == 0 else "❌ Failed",
         }
     except subprocess.TimeoutExpired:
-        raise MCPError(f"Command timed out after {timeout} seconds: {' '.join(command)}")
+        raise MCPError(
+            f"Command timed out after {timeout} seconds: {' '.join(command)}"
+        )
     except Exception as e:
         raise MCPError(f"Command execution failed: {str(e)}")
 
-@mcp.tool()
-async def health_check() -> Dict[str, Any]:
+
+async def health_check_impl() -> Dict[str, Any]:
     return {
         "status": "healthy",
         "server_name": SERVER_NAME,
@@ -101,11 +110,19 @@ async def health_check() -> Dict[str, Any]:
     }
 
 @mcp.tool()
-async def echo(message: str) -> str:
+async def health_check() -> Dict[str, Any]:
+    return await health_check_impl()
+
+
+async def echo_impl(message: str) -> str:
     return f"Echo: {message}"
 
 @mcp.tool()
-async def list_files(directory: str = ".") -> Dict[str, Any]:
+async def echo(message: str) -> str:
+    return await echo_impl(message)
+
+
+async def list_files_impl(directory: str = ".") -> Dict[str, Any]:
     try:
         path = validate_path(directory)
         if not path.exists():
@@ -118,7 +135,11 @@ async def list_files(directory: str = ".") -> Dict[str, Any]:
 
         for item in sorted(path.iterdir()):
             if item.is_file():
-                files.append({"name": item.name, "size": item.stat().st_size, "type": "file"})
+                files.append({
+                    "name": item.name,
+                    "size": item.stat().st_size,
+                    "type": "file"
+                })
             elif item.is_dir():
                 dirs.append({"name": item.name, "type": "directory"})
 
@@ -135,7 +156,13 @@ async def list_files(directory: str = ".") -> Dict[str, Any]:
         raise MCPError(f"Failed to list directory: {str(e)}")
 
 @mcp.tool()
-async def read_file(file_path: str, max_size: int = 1024 * 1024) -> Dict[str, Any]:
+async def list_files(directory: str = ".") -> Dict[str, Any]:
+    return await list_files_impl(directory)
+
+
+async def read_file_impl(
+    file_path: str, max_size: int = 1024 * 1024
+) -> Dict[str, Any]:
     try:
         path = validate_path(file_path)
         if not path.exists():
@@ -145,7 +172,9 @@ async def read_file(file_path: str, max_size: int = 1024 * 1024) -> Dict[str, An
 
         file_size = path.stat().st_size
         if file_size > max_size:
-            raise MCPError(f"File too large: {file_size} bytes (max: {max_size})")
+            raise MCPError(
+                f"File too large: {file_size} bytes (max: {max_size})"
+            )
 
         content = path.read_text(encoding="utf-8")
 
@@ -164,7 +193,15 @@ async def read_file(file_path: str, max_size: int = 1024 * 1024) -> Dict[str, An
         raise MCPError(f"Failed to read file: {str(e)}")
 
 @mcp.tool()
-async def write_file(file_path: str, content: str, create_dirs: bool = True) -> Dict[str, Any]:
+async def read_file(
+    file_path: str, max_size: int = 1024 * 1024
+) -> Dict[str, Any]:
+    return await read_file_impl(file_path, max_size)
+
+
+async def write_file_impl(
+    file_path: str, content: str, create_dirs: bool = True
+) -> Dict[str, Any]:
     try:
         path = validate_path(file_path)
         if create_dirs:
@@ -181,7 +218,15 @@ async def write_file(file_path: str, content: str, create_dirs: bool = True) -> 
         raise MCPError(f"Failed to write file: {str(e)}")
 
 @mcp.tool()
-async def run_shell_command(command: str, directory: str = ".") -> Dict[str, Any]:
+async def write_file(
+    file_path: str, content: str, create_dirs: bool = True
+) -> Dict[str, Any]:
+    return await write_file_impl(file_path, content, create_dirs)
+
+
+async def run_shell_command_impl(
+    command: str, directory: str = "."
+) -> Dict[str, Any]:
     try:
         path = validate_path(directory)
         if not path.exists():
@@ -196,6 +241,13 @@ async def run_shell_command(command: str, directory: str = ".") -> Dict[str, Any
     except Exception as e:
         raise MCPError(f"Failed to execute command: {str(e)}")
 
+@mcp.tool()
+async def run_shell_command(
+    command: str, directory: str = "."
+) -> Dict[str, Any]:
+    return await run_shell_command_impl(command, directory)
+
+
 @mcp.resource("file://{path}")
 async def read_file_resource(path: str) -> str:
     try:
@@ -208,8 +260,11 @@ async def read_file_resource(path: str) -> str:
     except Exception as e:
         raise MCPError(f"Failed to read file resource: {str(e)}")
 
+
 @mcp.prompt()
-async def code_review_prompt(code: str, language: str = "python", focus: str = "general") -> str:
+async def code_review_prompt(
+    code: str, language: str = "python", focus: str = "general"
+) -> str:
     return f"""Please review the following {language} code with a focus on {focus}:
 
 ```{language}
@@ -225,16 +280,23 @@ Please provide feedback on:
 
 Be specific and constructive in your feedback."""
 
-def main():
+
+def main() -> None:
     """Synchronous entrypoint — delegates async lifecycle to FastMCP."""
     logger.info(f"Starting {SERVER_NAME} v{VERSION}")
     logger.info(f"Transport: {TRANSPORT}, Host: {HOST}, Port: {PORT}")
     logger.info(f"Workspace: {WORKSPACE_PATH}")
 
     try:
-        if TRANSPORT.lower() in ("http", "sse"):
-            logger.info(f"Starting server on {HOST}:{PORT} with {TRANSPORT} transport")
-            mcp.run(transport=TRANSPORT.lower(), host=HOST, port=PORT)
+        transport_lower = TRANSPORT.lower()
+        if transport_lower in ("http", "sse"):
+            logger.info(
+                f"Starting server on {HOST}:{PORT} with {TRANSPORT} transport"
+            )
+            if transport_lower == "http":
+                mcp.run(transport="streamable-http", host=HOST, port=PORT)
+            else:
+                mcp.run(transport="sse", host=HOST, port=PORT)
         else:
             logger.info("Starting server with STDIO transport")
             mcp.run()
