@@ -2,6 +2,9 @@
 fastmcp>=2.0.0,<3.0.0
 python-dotenv>=1.1.0,<2.0.0
 rich>=13.9.0,<14.0.0
+limits>=3.0.0,<4.0.0  # Rate limiting for security
+structlog>=24.0.0,<25.0.0  # Structured logging
+prometheus-client>=0.20.0,<1.0.0  # Metrics collection
 
 # Development dependencies (install with: pip install -r requirements-dev.txt)
 # Or uncomment below for all-in-one installation

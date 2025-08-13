@@ -73,21 +73,39 @@ We appreciate security researchers who help keep our users safe:
 
 ## 🔍 Security Features
 
-This template includes several security features:
+This template follows security-first design principles with defense-in-depth strategies across all layers.
 
-### ✅ Built-in Protections
+### 🔒 Input Validation & Path Security
+- **Path Traversal Protection**: All file paths validated against directory traversal attacks
+- **Base Path Enforcement**: Operations restricted to configured workspace directory  
+- **Input Sanitization**: Command inputs validated and sanitized before execution
+- **Size Limits**: Configurable file operation size limits prevent DoS attacks
 
-- **Path Validation**: Prevents directory traversal attacks
-- **File Size Limits**: Prevents resource exhaustion
-- **Command Timeouts**: Prevents hanging processes
-- **Input Sanitization**: Validates user inputs
-- **Non-root Execution**: Docker containers run as non-root user
+### 🛡️ Rate Limiting & DoS Protection
+- **Request Rate Limiting**: Configurable rate limits per tool and client (default: 100/minute)
+- **Resource Monitoring**: Built-in Prometheus metrics for resource usage monitoring
+- **Timeout Protection**: All operations have configurable timeouts prevent hanging
+- **Memory Management**: Proper resource cleanup and garbage collection
+
+### 🔐 Network Security
+- **Secure Defaults**: Server binds to localhost (127.0.0.1) by default, not 0.0.0.0
+- **Transport Security**: Supports secure HTTP and SSE transports with proper configuration
+- **Environment-based Config**: Sensitive configuration through environment variables only
+- **No Hardcoded Secrets**: Zero tolerance for hardcoded credentials or API keys
+
+### 📊 Audit & Monitoring
+- **Structured Logging**: Comprehensive audit trails with structured JSON logging
+- **Security Event Logging**: All security-relevant events logged with context
+- **Metrics Collection**: Prometheus-compatible metrics for security monitoring
+- **Error Context**: Detailed error logging without exposing sensitive information
 
 ### 🔧 Security Tools Integration
 
 - **Bandit**: Static security analysis for Python code
 - **Safety**: Dependency vulnerability scanning
 - **Docker Security**: Multi-stage builds and minimal attack surface
+- **MyPy**: Type safety enforcement
+- **Rate Limiting**: Request throttling with limits library
 
 ### 📊 Security Monitoring
 
@@ -95,8 +113,58 @@ Our CI/CD pipeline includes:
 
 - Automated security scanning on every commit
 - Dependency vulnerability checks
-- Container security scanning
+- Container security scanning  
 - Security issue creation for violations
+- Performance and resource monitoring
+- Structured security event logging
+
+## 🛠️ Security Configuration
+
+### Environment Variables
+```bash
+# Network Security
+MCP_HOST=127.0.0.1              # Bind to localhost only (secure default)
+MCP_PORT=8080                   # Custom port if needed
+MCP_TRANSPORT=stdio             # Transport method (stdio/http/sse)
+
+# Rate Limiting
+MCP_RATE_LIMIT=100/minute       # Request rate limit per client
+MCP_METRICS_PORT=9090           # Metrics endpoint port
+
+# Workspace Security  
+WORKSPACE_PATH=/secure/workspace # Restricted workspace directory
+```
+
+### Rate Limiting Configuration
+```python
+# Available rate limit formats:
+# "10/second"   - 10 requests per second
+# "100/minute"  - 100 requests per minute  
+# "1000/hour"   - 1000 requests per hour
+# "10000/day"   - 10000 requests per day
+```
+
+## 🔧 Security Testing
+
+### Security Testing Commands
+```bash
+# Security vulnerability scanning
+bandit -r mcp_server/
+safety check
+
+# Dependency vulnerability check
+pip-audit
+
+# Static analysis with security focus
+mypy --strict mcp_server/
+flake8 --max-line-length=79 mcp_server/
+```
+
+### Regular Security Tasks
+- [ ] **Dependency Scanning**: Run `bandit` and `safety` on all dependencies
+- [ ] **Static Analysis**: Use `bandit` for security-focused code analysis
+- [ ] **Penetration Testing**: Regular automated security scans
+- [ ] **Code Review**: Security-focused code review for all changes
 
 ## 📚 Security Resources
 
