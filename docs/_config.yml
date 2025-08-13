@@ -1,0 +1,50 @@
+# GitHub Pages Configuration
+title: "Python MCP Server Template"
+description: "Production-ready MCP server template with security-first design"
+baseurl: "/python-mcp-server-template"
+url: "https://aj-geddes.github.io"
+
+# Theme
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Navigation
+header_pages:
+  - deployment/quickstart.md
+  - security/overview.md
+  - api/overview.md
+  - development/setup.md
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# SEO
+author: "aj-geddes"
+twitter:
+  username: "aj_geddes"
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
