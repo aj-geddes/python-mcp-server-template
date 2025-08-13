@@ -1,4 +1,8 @@
-# Python MCP Server Template Documentation
+---
+layout: default
+title: "Python MCP Server Template Documentation"
+description: "Production-ready template for building MCP servers using FastMCP framework"
+---
 
 A production-ready template for building Model Context Protocol (MCP) servers using the FastMCP framework.
 

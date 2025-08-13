@@ -1,4 +1,8 @@
-# API Reference
+---
+layout: default
+title: "API Reference"
+description: "Complete documentation for all MCP tools, resources, and prompts"
+---
 
 Complete documentation for all MCP tools, resources, and prompts in the template.
 

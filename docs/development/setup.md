@@ -1,4 +1,8 @@
-# Development Setup
+---
+layout: default
+title: "Development Setup"
+description: "Complete guide for contributing to and extending the MCP server template"
+---
 
 Complete guide for contributing to and extending the MCP server template.
 

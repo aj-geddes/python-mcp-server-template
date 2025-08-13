@@ -1,4 +1,8 @@
-# Docker Deployment Guide
+---
+layout: default
+title: "Docker Deployment Guide"
+description: "Production-ready Docker deployment with security hardening and monitoring"
+---
 
 Production-ready Docker deployment with security hardening and monitoring.
 

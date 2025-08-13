@@ -1,4 +1,8 @@
-# Quick Start Guide
+---
+layout: default
+title: "Quick Start Guide"
+description: "Get your MCP server running in production in under 5 minutes"
+---
 
 Get your MCP server running in production in under 5 minutes.
 

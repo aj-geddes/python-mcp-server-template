@@ -1,4 +1,8 @@
-# Security Overview
+---
+layout: default
+title: "Security Overview"
+description: "Enterprise-grade security features and comprehensive protection measures"
+---
 
 This MCP server template implements **enterprise-grade security** with comprehensive protection measures.
 
