@@ -227,8 +227,11 @@ class PerformanceBenchmark:
         # Create a simple test script that imports the server
         test_script = f"""
 import time
-start = time.perf_counter()
 import sys
+import os
+# Redirect stderr to suppress warnings and logging
+sys.stderr = open(os.devnull, 'w')
+start = time.perf_counter()
 sys.path.insert(0, '{Path(__file__).parent}')
 import mcp_server
 end = time.perf_counter()
@@ -240,10 +243,18 @@ print(f"{{(end - start) * 1000:.2f}}")
             result = subprocess.run(
                 [sys.executable, "-c", test_script],
                 capture_output=True,
-                text=True
+                text=True,
+                env={**os.environ, "MCP_METRICS_PORT": "0"}  # Disable metrics server
             )
             if result.returncode == 0:
-                startup_times.append(float(result.stdout.strip()))
+                try:
+                    # Extract just the number from the output
+                    lines = result.stdout.strip().split('\n')
+                    time_str = lines[-1]  # Get the last line
+                    startup_times.append(float(time_str))
+                except (ValueError, IndexError):
+                    print(f"Failed to parse startup time from: {result.stdout}")
+                    continue
                 
         if startup_times:
             return {

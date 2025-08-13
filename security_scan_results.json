@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-08-13T01:26:14.654581",
+  "overall_status": "SECURE",
+  "critical_issues": 0,
+  "high_issues": 0,
+  "medium_issues": 0,
+  "low_issues": 0,
+  "scans": {
+    "bandit": {
+      "status": "FAIL",
+      "tool": "bandit",
+      "error": "",
+      "returncode": 1
+    },
+    "safety": {
+      "status": "FAIL",
+      "tool": "safety",
+      "error": "Error: Illegal usage: `--full-report` is mutually exclusive with: \n * --output with ['json', 'bare']\n * --bare with [True, False]\n * --json with [True, False]\n",
+      "returncode": 2
+    },
+    "semgrep": {
+      "status": "SKIP",
+      "tool": "semgrep",
+      "reason": "Semgrep not installed"
+    },
+    "secrets": {
+      "status": "PASS",
+      "tool": "secrets_check",
+      "issues": []
+    },
+    "file_permissions": {
+      "status": "PASS",
+      "tool": "file_permissions",
+      "issues": []
+    },
+    "dependencies": {
+      "status": "PASS",
+      "tool": "dependency_check",
+      "issues": []
+    },
+    "docker": {
+      "status": "PASS",
+      "tool": "docker_security",
+      "issues": []
+    }
+  }
+}

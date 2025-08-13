@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Copy requirements file early for better layer caching
-COPY requirements.txt /tmp/requirements.txt
+COPY --chown=1000:1000 requirements.txt /tmp/requirements.txt
 
 # Install Python dependencies as root using UV
 RUN uv pip install --system -r /tmp/requirements.txt

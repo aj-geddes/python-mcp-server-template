@@ -11,69 +11,98 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable, Awaitable
 
 from fastmcp import FastMCP
-from rich.console import Console
-from rich.logging import RichHandler
 
-# Optional imports for enhanced features
-try:
-    from dotenv import load_dotenv
+# Optional imports for enhanced features - defer expensive imports
+STRUCTURED_LOGGING = False
+METRICS_ENABLED = False
+RATE_LIMITING = False
 
-    load_dotenv()
-except ImportError:
-    pass  # dotenv is optional
+# Defer dotenv loading
+def _load_dotenv():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
 
-try:
-    import structlog
+# Check for optional dependencies without importing
+def _check_structlog():
+    try:
+        import structlog
+        import prometheus_client
+        return True
+    except ImportError:
+        return False
+
+def _check_limits():
+    try:
+        import limits
+        return True
+    except ImportError:
+        return False
+
+# Set flags based on availability
+STRUCTURED_LOGGING = _check_structlog()
+METRICS_ENABLED = _check_structlog()
+RATE_LIMITING = _check_limits()
+
+# Defer logging setup
+logger = None
+
+def _setup_logging():
+    global logger
+    if logger is not None:
+        return logger
+        
+    if STRUCTURED_LOGGING:
+        import structlog
+        structlog.configure(
+            processors=[
+                structlog.stdlib.filter_by_level,
+                structlog.stdlib.add_logger_name,
+                structlog.stdlib.add_log_level,
+                structlog.stdlib.PositionalArgumentsFormatter(),
+                structlog.processors.TimeStamper(fmt="iso"),
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.format_exc_info,
+                structlog.processors.UnicodeDecoder(),
+                structlog.processors.JSONRenderer(),
+            ],
+            context_class=dict,
+            logger_factory=structlog.stdlib.LoggerFactory(),
+            wrapper_class=structlog.stdlib.BoundLogger,
+            cache_logger_on_first_use=True,
+        )
+        logger = structlog.get_logger(__name__)
+    else:
+        from rich.console import Console
+        from rich.logging import RichHandler
+        console = Console()
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[RichHandler(console=console, rich_tracebacks=True)],
+        )
+        logger = logging.getLogger(__name__)
+    
+    return logger
+
+# Defer metrics and rate limiting setup
+REQUEST_COUNT = None
+REQUEST_DURATION = None
+COMMAND_EXECUTIONS = None
+RATE_LIMITER = None
+DEFAULT_RATE_LIMIT = None
+
+def _setup_metrics():
+    global REQUEST_COUNT, REQUEST_DURATION, COMMAND_EXECUTIONS
+    if not METRICS_ENABLED or REQUEST_COUNT is not None:
+        return
+        
     from prometheus_client import Counter, Histogram, start_http_server
-
-    STRUCTURED_LOGGING = True
-    METRICS_ENABLED = True
-except ImportError:
-    STRUCTURED_LOGGING = False
-    METRICS_ENABLED = False
-
-try:
-    from limits import parse, strategies
-    from limits.storage import MemoryStorage
-
-    RATE_LIMITING = True
-except ImportError:
-    RATE_LIMITING = False
-
-# Production logging setup with structured logging if available
-if STRUCTURED_LOGGING:
-    structlog.configure(
-        processors=[
-            structlog.stdlib.filter_by_level,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
-            structlog.stdlib.PositionalArgumentsFormatter(),
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
-            structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer(),
-        ],
-        context_class=dict,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True,
-    )
-    logger = structlog.get_logger(__name__)
-else:
-    console = Console()
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[RichHandler(console=console, rich_tracebacks=True)],
-    )
-    logger = logging.getLogger(__name__)
-
-# Metrics setup
-if METRICS_ENABLED:
     REQUEST_COUNT = Counter(
         "mcp_requests_total", "Total MCP requests", ["tool", "status"]
     )
@@ -86,34 +115,45 @@ if METRICS_ENABLED:
 
     # Start metrics server on a separate port
     METRICS_PORT = int(os.getenv("MCP_METRICS_PORT", "9090"))
-    try:
-        start_http_server(METRICS_PORT)
-        if STRUCTURED_LOGGING:
-            logger.info("metrics_server_started", port=METRICS_PORT)
-        else:
-            logger.info(f"Metrics server started on port {METRICS_PORT}")
-    except Exception as e:
-        if STRUCTURED_LOGGING:
-            logger.warning("metrics_server_failed", error=str(e))
-        else:
-            logger.warning(f"Failed to start metrics server: {e}")
+    if METRICS_PORT > 0:  # Allow disabling with port 0
+        try:
+            start_http_server(METRICS_PORT)
+            logger = _setup_logging()
+            if STRUCTURED_LOGGING:
+                logger.info("metrics_server_started", port=METRICS_PORT)
+            else:
+                logger.info(f"Metrics server started on port {METRICS_PORT}")
+        except Exception as e:
+            logger = _setup_logging()
+            if STRUCTURED_LOGGING:
+                logger.warning("metrics_server_failed", error=str(e))
+            else:
+                logger.warning(f"Failed to start metrics server: {e}")
 
-# Rate limiting setup
-if RATE_LIMITING:
-    RATE_LIMIT_STORAGE = MemoryStorage()
-    RATE_LIMITER = strategies.FixedWindowRateLimiter(RATE_LIMIT_STORAGE)
-    DEFAULT_RATE_LIMIT = parse(os.getenv("MCP_RATE_LIMIT", "100/minute"))
-    if STRUCTURED_LOGGING:
-        logger.info("rate_limiting_enabled", limit=str(DEFAULT_RATE_LIMIT))
+def _setup_rate_limiting():
+    global RATE_LIMITER, DEFAULT_RATE_LIMIT
+    if RATE_LIMITER is not None:
+        return
+        
+    if RATE_LIMITING:
+        from limits import parse, strategies
+        from limits.storage import MemoryStorage
+        RATE_LIMIT_STORAGE = MemoryStorage()
+        RATE_LIMITER = strategies.FixedWindowRateLimiter(RATE_LIMIT_STORAGE)
+        DEFAULT_RATE_LIMIT = parse(os.getenv("MCP_RATE_LIMIT", "100/minute"))
+        logger = _setup_logging()
+        if STRUCTURED_LOGGING:
+            logger.info("rate_limiting_enabled", limit=str(DEFAULT_RATE_LIMIT))
+        else:
+            logger.info(f"Rate limiting enabled: {DEFAULT_RATE_LIMIT}")
     else:
-        logger.info(f"Rate limiting enabled: {DEFAULT_RATE_LIMIT}")
-else:
-    if STRUCTURED_LOGGING:
-        logger.warning("rate_limiting_disabled", reason="limits package not installed")
-    else:
-        logger.warning(
-            "Rate limiting disabled - install limits package for production use"
-        )
+        logger = _setup_logging()
+        if STRUCTURED_LOGGING:
+            logger.warning("rate_limiting_disabled", reason="limits package not installed")
+        else:
+            logger.warning(
+                "Rate limiting disabled - install limits package for production use"
+            )
 
 # Environment-first configuration
 SERVER_NAME = os.getenv("MCP_SERVER_NAME", "template-server")
@@ -129,6 +169,7 @@ mcp = FastMCP(name=SERVER_NAME)
 
 # Graceful shutdown handling
 def signal_handler(signum: int, frame: Any) -> None:
+    logger = _setup_logging()
     logger.info(f"Received signal {signum}, shutting down gracefully...")
     sys.exit(0)
 
@@ -147,16 +188,21 @@ class RateLimitExceeded(MCPError):
     pass
 
 
-def with_monitoring(tool_name: str):
+def with_monitoring(tool_name: str) -> Callable[[Callable[..., Awaitable[Any]]], Callable[..., Awaitable[Any]]]:
     """Decorator to add rate limiting, metrics, and structured logging to MCP tools."""
 
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
+    def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Lazy initialization on first use
+            _setup_rate_limiting()
+            _setup_metrics()
+            logger = _setup_logging()
+            
             start_time = time.time()
             request_id = f"{tool_name}_{int(start_time * 1000)}"
 
             # Check rate limit
-            if RATE_LIMITING:
+            if RATE_LIMITING and RATE_LIMITER is not None:
                 client_id = kwargs.get("client_id", "default")
                 if not RATE_LIMITER.hit(
                     DEFAULT_RATE_LIMIT, "mcp_tools", f"{tool_name}:{client_id}"
@@ -248,6 +294,7 @@ def validate_path(path: str, base_path: Optional[str] = None) -> Path:
 async def run_command(
     command: List[str], cwd: Optional[str] = None, timeout: int = 30
 ) -> Dict[str, Any]:
+    logger = _setup_logging()
     command_str = " ".join(command)
     start_time = time.time()
 
@@ -350,7 +397,8 @@ async def health_check_impl() -> Dict[str, Any]:
 
 @mcp.tool()
 async def health_check() -> Dict[str, Any]:
-    return await health_check_impl()
+    result: Dict[str, Any] = await health_check_impl()
+    return result
 
 
 @with_monitoring("echo")
@@ -360,7 +408,8 @@ async def echo_impl(message: str) -> str:
 
 @mcp.tool()
 async def echo(message: str) -> str:
-    return await echo_impl(message)
+    result: str = await echo_impl(message)
+    return result
 
 
 @with_monitoring("list_files")
@@ -398,7 +447,8 @@ async def list_files_impl(directory: str = ".") -> Dict[str, Any]:
 
 @mcp.tool()
 async def list_files(directory: str = ".") -> Dict[str, Any]:
-    return await list_files_impl(directory)
+    result: Dict[str, Any] = await list_files_impl(directory)
+    return result
 
 
 @with_monitoring("read_file")
@@ -433,7 +483,8 @@ async def read_file_impl(file_path: str, max_size: int = 1024 * 1024) -> Dict[st
 
 @mcp.tool()
 async def read_file(file_path: str, max_size: int = 1024 * 1024) -> Dict[str, Any]:
-    return await read_file_impl(file_path, max_size)
+    result: Dict[str, Any] = await read_file_impl(file_path, max_size)
+    return result
 
 
 @with_monitoring("write_file")
@@ -460,7 +511,8 @@ async def write_file_impl(
 async def write_file(
     file_path: str, content: str, create_dirs: bool = True
 ) -> Dict[str, Any]:
-    return await write_file_impl(file_path, content, create_dirs)
+    result: Dict[str, Any] = await write_file_impl(file_path, content, create_dirs)
+    return result
 
 
 @with_monitoring("run_shell_command")
@@ -482,7 +534,8 @@ async def run_shell_command_impl(command: str, directory: str = ".") -> Dict[str
 
 @mcp.tool()
 async def run_shell_command(command: str, directory: str = ".") -> Dict[str, Any]:
-    return await run_shell_command_impl(command, directory)
+    result: Dict[str, Any] = await run_shell_command_impl(command, directory)
+    return result
 
 
 @mcp.resource("file://{path}")
@@ -520,6 +573,10 @@ Be specific and constructive in your feedback."""
 
 def main() -> None:
     """Synchronous entrypoint — delegates async lifecycle to FastMCP."""
+    # Initialize lazy components
+    _load_dotenv()
+    logger = _setup_logging()
+    
     logger.info(f"Starting {SERVER_NAME} v{VERSION}")
     logger.info(f"Transport: {TRANSPORT}, Host: {HOST}, Port: {PORT}")
     logger.info(f"Workspace: {WORKSPACE_PATH}")
