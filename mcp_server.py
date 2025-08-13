@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 """
-Entry point for the MCP server template.
-This file serves as the main entry point for running the server.
+MCP Server Entry Point
+======================
+🚀 Quick Start:
+1. Configure your server: python quick_setup.py
+2. Start your server: python mcp_server.py
+
+Your server will automatically load configuration from config.py
+and custom tools from tools/custom_tools.py
 """
 
-import asyncio
-
-from mcp_server import main
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        from mcp_server.server import start_server
+        start_server()
+    except ImportError as e:
+        print(f"❌ Error importing server: {e}")
+        print("💡 Make sure you've run 'python quick_setup.py' to configure your server")
+        exit(1)

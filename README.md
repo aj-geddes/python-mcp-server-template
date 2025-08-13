@@ -1,89 +1,95 @@
-# Python MCP Server Template
+# 🚀 Python MCP Server Template
 
 ![Python](https://img.shields.io/badge/python-v3.10+-blue.svg)
 ![FastMCP](https://img.shields.io/badge/FastMCP-v2.0.0+-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Docker](https://img.shields.io/badge/docker-enabled-blue.svg)
-![GitHub Actions](https://github.com/aj-geddes/python-mcp-server-template/workflows/Python%20Code%20Quality%20Check/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-72%25+-brightgreen.svg)
-![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
 ![Tests](https://img.shields.io/badge/tests-99_passing-green.svg)
 ![Security](https://img.shields.io/badge/security-A+_grade-gold.svg)
 ![Production Ready](https://img.shields.io/badge/production-ready-success.svg)
+![Setup Time](https://img.shields.io/badge/setup_time-2_minutes-brightgreen.svg)
 
-> 🚀 **Production-ready, security-first Python MCP server template with enterprise-grade features**
+> **Create production-ready MCP servers in minutes, not hours**
+> 
+> Transform this template into your custom MCP server with our interactive setup wizard. Everything is centralized, documented, and ready for production deployment.
 
 A comprehensive, security-first template for building [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers with Python. Get from zero to production in minutes with built-in Docker support, automated testing, and enterprise-grade CI/CD.
 
-## ✨ **Why This Template?**
-
-- 🔒 **Security First**: Built-in path validation, security scanning, and vulnerability management
-- ⚡ **Production Ready**: Docker containerization, health checks, and monitoring
-- 🧪 **Quality Assured**: Automated testing, linting, and code formatting
-- 📚 **Well Documented**: Comprehensive docs, examples, and contribution guidelines
-- 🤝 **Community Driven**: Issue templates, PR workflows, and contributor tools
-
-## 🎯 **Perfect For**
-
-- **AI Developers** building MCP-enabled applications
-- **Teams** integrating with Claude and other AI systems  
-- **DevOps Engineers** deploying scalable AI tool services
-- **Researchers** prototyping AI agent capabilities
-- **Startups** building AI-powered products
-
----
-
-## 🚀 **Quick Start**
-
-### Prerequisites
-
-- Python 3.10+ 
-- Docker (optional, for containerized deployment)
-- Git
-
-### 1. Clone and Setup
+## ⚡ **2-Minute MCP Server Setup**
 
 ```bash
-# Clone the repository
+# 1. Clone and enter directory
 git clone https://github.com/aj-geddes/python-mcp-server-template.git
 cd python-mcp-server-template
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
-
-# Install dependencies
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# Install development dependencies (optional)
-pip install -r requirements-dev.txt
-```
+# 3. Run interactive setup wizard
+python quick_setup.py
 
-### 2. Run the Server
-
-```bash
-# Run with default STDIO transport
-python mcp_server.py
-
-# Run with HTTP transport
-MCP_TRANSPORT=http MCP_PORT=8080 python mcp_server.py
-
-# Run with environment variables
-export MCP_SERVER_NAME="my-server"
-export WORKSPACE_PATH="/path/to/workspace"
+# 4. Start your custom MCP server!
 python mcp_server.py
 ```
 
-### 3. Test with Docker
+**That's it! 🎉** Your production-ready MCP server is running with:
+- ✅ Custom tools configured  
+- ✅ Security scanning enabled
+- ✅ Docker deployment ready
+- ✅ Monitoring and logging active
 
+---
+
+## 🎯 **Perfect For Building**
+
+| **Use Case** | **Example Tools** | **Setup Time** |
+|--------------|-------------------|----------------|
+| **🤖 AI Tool Servers** | File processors, calculators, formatters | 2 minutes |
+| **🔌 API Integrations** | Database queries, web APIs, cloud services | 3 minutes |
+| **🛠️ Custom Automation** | System commands, workflows, data pipelines | 2 minutes |
+| **🏢 Enterprise Solutions** | Secure, monitored, compliant MCP servers | 5 minutes |
+
+## ✨ **Why Developers Choose This Template**
+
+- **⚡ 2-Minute Setup** - Interactive wizard configures everything
+- **🎯 Centralized Config** - All settings in `config.py`, not scattered across files
+- **🛠️ Easy Tool Addition** - Add tools in `tools/custom_tools.py` with examples
+- **🔒 Security Built-In** - A+ grade security with automated scanning
+- **📊 Production Ready** - Monitoring, logging, Docker, and health checks included
+
+## 🚀 **From Template to Your MCP Server**
+
+### Interactive Setup
 ```bash
-# Build and test
-./build.sh
+python quick_setup.py
+```
+The wizard will ask you:
+- **Server name** (e.g., "weather-tools-server")
+- **Description** (what your server does)
+- **Your branding** (name, email, repository)
+- **Tool purpose** (what kinds of tools you're building)
 
-# Run in container
-docker run -it --rm python-mcp-server-template:latest
+### Your Files Are Updated
+- `config.py` - All your settings in one place
+- `tools/custom_tools.py` - Template for your tool implementations  
+- `README.md` - Updated with your project info
+
+### Add Your Tools
+```python
+# In tools/custom_tools.py
+async def my_awesome_tool_impl(param1: str, param2: int) -> Dict[str, Any]:
+    # Your tool logic here
+    return {"result": f"Processed {param1} with value {param2}"}
+```
+
+### Deploy Anywhere
+```bash
+# Local development
+python mcp_server.py
+
+# Production with Docker
+docker build -t my-mcp-server .
+docker run -p 8080:8080 my-mcp-server
 ```
 
 ## 🛠️ **Development**

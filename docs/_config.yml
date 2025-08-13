@@ -1,6 +1,6 @@
 # GitHub Pages Configuration
 title: "Python MCP Server Template"
-description: "Production-ready MCP server template with security-first design"
+description: "Create production-ready MCP servers in minutes, not hours"
 baseurl: "/python-mcp-server-template"
 url: "https://aj-geddes.github.io"
 
@@ -24,11 +24,23 @@ highlighter: rouge
 kramdown:
   input: GFM
   syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: 'highlight'
+    span:
+      line_numbers: false
 
-# SEO
+# SEO and Social
 author: "aj-geddes"
 twitter:
   username: "aj_geddes"
+  card: summary_large_image
+
+# Custom settings for professional appearance
+minima:
+  skin: classic
+  social_links:
+    github: aj-geddes
+    twitter: aj_geddes
 
 # Collections
 collections:
@@ -36,15 +48,38 @@ collections:
     output: true
     permalink: /:collection/:name/
 
-# Defaults
+# Defaults with enhanced metadata
 defaults:
   - scope:
       path: ""
       type: "posts"
     values:
       layout: "post"
+      show_excerpts: true
   - scope:
       path: ""
       type: "docs"
     values:
       layout: "page"
+      show_date: false
+  - scope:
+      path: "docs"
+    values:
+      layout: "default"
+      nav_enabled: true
+
+# Exclude files
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - _drafts/
+
+# Custom CSS
+sass:
+  style: compressed
+  sass_dir: assets/css
