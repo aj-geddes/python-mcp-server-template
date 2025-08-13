@@ -133,42 +133,38 @@ docker build -t my-server . && docker run -p 8080:8080 my-server</code></pre>
 
 ## 📋 Developer Quick Reference
 
-<table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
-  <thead>
-    <tr style="background-color: #f8fafc;">
-      <th style="text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9;"><strong>Want to...</strong></th>
-      <th style="text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9;"><strong>Do this</strong></th>
-      <th style="text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9;"><strong>File to edit</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr style="border-bottom: 1px solid #f1f5f9;">
-      <td style="padding: 0.75rem 1rem;">Change server name</td>
-      <td style="padding: 0.75rem 1rem;">Run setup wizard</td>
-      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">python quick_setup.py</code></td>
-    </tr>
-    <tr style="border-bottom: 1px solid #f1f5f9;">
-      <td style="padding: 0.75rem 1rem;">Add custom tools</td>
-      <td style="padding: 0.75rem 1rem;">Edit tool implementations</td>
-      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">tools/custom_tools.py</code></td>
-    </tr>
-    <tr style="border-bottom: 1px solid #f1f5f9;">
-      <td style="padding: 0.75rem 1rem;">Configure features</td>
-      <td style="padding: 0.75rem 1rem;">Update settings</td>
-      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">config.py</code></td>
-    </tr>
-    <tr style="border-bottom: 1px solid #f1f5f9;">
-      <td style="padding: 0.75rem 1rem;">Test your server</td>
-      <td style="padding: 0.75rem 1rem;">Run health check</td>
-      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">python config.py</code></td>
-    </tr>
-    <tr>
-      <td style="padding: 0.75rem 1rem;">Deploy production</td>
-      <td style="padding: 0.75rem 1rem;">Build and run</td>
-      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">docker build -t my-server .</code></td>
-    </tr>
-  </tbody>
-</table>
+<div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin: 1.5rem 0;">
+  <div style="background-color: #f8fafc; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;">
+    <div style="padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9;"><strong>Want to...</strong></div>
+    <div style="padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9;"><strong>Do this</strong></div>
+    <div style="padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9;"><strong>File to edit</strong></div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid #f1f5f9;">
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Change server name</div>
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Run setup wizard</div>
+    <div style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">python quick_setup.py</code></div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid #f1f5f9;">
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Add custom tools</div>
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Edit tool implementations</div>
+    <div style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">tools/custom_tools.py</code></div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid #f1f5f9;">
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Configure features</div>
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Update settings</div>
+    <div style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">config.py</code></div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid #f1f5f9;">
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Test your server</div>
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Run health check</div>
+    <div style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">python config.py</code></div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;">
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Deploy production</div>
+    <div style="padding: 0.75rem 1rem; border-right: 1px solid #f1f5f9;">Build and run</div>
+    <div style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">docker build -t my-server .</code></div>
+  </div>
+</div>
 
 <div style="text-align: center; margin-top: 2rem;">
   <a href="/python-mcp-server-template/deployment/quickstart.html" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; background-color: #2563eb; color: white; margin: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s ease;">
