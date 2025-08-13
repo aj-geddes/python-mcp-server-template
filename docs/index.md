@@ -133,6 +133,7 @@ docker build -t my-server . && docker run -p 8080:8080 my-server</code></pre>
 
 ## 📋 Developer Quick Reference
 
+{::nomarkdown}
 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin: 1.5rem 0;">
   <div style="background-color: #f8fafc; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;">
     <div style="padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9;"><strong>Want to...</strong></div>
@@ -165,6 +166,7 @@ docker build -t my-server . && docker run -p 8080:8080 my-server</code></pre>
     <div style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">docker build -t my-server .</code></div>
   </div>
 </div>
+{:/}
 
 <div style="text-align: center; margin-top: 2rem;">
   <a href="/python-mcp-server-template/deployment/quickstart.html" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; background-color: #2563eb; color: white; margin: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s ease;">
