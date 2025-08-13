@@ -133,39 +133,39 @@ docker build -t my-server . && docker run -p 8080:8080 my-server</code></pre>
 
 ## 📋 Developer Quick Reference
 
-<table>
+<table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
   <thead>
-    <tr>
-      <th><strong>Want to...</strong></th>
-      <th><strong>Do this</strong></th>
-      <th><strong>File to edit</strong></th>
+    <tr style="background-color: #f8fafc;">
+      <th style="text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9;"><strong>Want to...</strong></th>
+      <th style="text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9;"><strong>Do this</strong></th>
+      <th style="text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9;"><strong>File to edit</strong></th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>Change server name</td>
-      <td>Run setup wizard</td>
-      <td><code>python quick_setup.py</code></td>
+    <tr style="border-bottom: 1px solid #f1f5f9;">
+      <td style="padding: 0.75rem 1rem;">Change server name</td>
+      <td style="padding: 0.75rem 1rem;">Run setup wizard</td>
+      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">python quick_setup.py</code></td>
+    </tr>
+    <tr style="border-bottom: 1px solid #f1f5f9;">
+      <td style="padding: 0.75rem 1rem;">Add custom tools</td>
+      <td style="padding: 0.75rem 1rem;">Edit tool implementations</td>
+      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">tools/custom_tools.py</code></td>
+    </tr>
+    <tr style="border-bottom: 1px solid #f1f5f9;">
+      <td style="padding: 0.75rem 1rem;">Configure features</td>
+      <td style="padding: 0.75rem 1rem;">Update settings</td>
+      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">config.py</code></td>
+    </tr>
+    <tr style="border-bottom: 1px solid #f1f5f9;">
+      <td style="padding: 0.75rem 1rem;">Test your server</td>
+      <td style="padding: 0.75rem 1rem;">Run health check</td>
+      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">python config.py</code></td>
     </tr>
     <tr>
-      <td>Add custom tools</td>
-      <td>Edit tool implementations</td>
-      <td><code>tools/custom_tools.py</code></td>
-    </tr>
-    <tr>
-      <td>Configure features</td>
-      <td>Update settings</td>
-      <td><code>config.py</code></td>
-    </tr>
-    <tr>
-      <td>Test your server</td>
-      <td>Run health check</td>
-      <td><code>python config.py</code></td>
-    </tr>
-    <tr>
-      <td>Deploy production</td>
-      <td>Build and run</td>
-      <td><code>docker build -t my-server .</code></td>
+      <td style="padding: 0.75rem 1rem;">Deploy production</td>
+      <td style="padding: 0.75rem 1rem;">Build and run</td>
+      <td style="padding: 0.75rem 1rem;"><code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.9em;">docker build -t my-server .</code></td>
     </tr>
   </tbody>
 </table>
